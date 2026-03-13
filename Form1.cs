@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace JuegoPOO
@@ -12,11 +14,17 @@ namespace JuegoPOO
         Personaje jugador;
         List<Personaje> enemigos = new List<Personaje>();
         List<PictureBox> enemyBoxes = new List<PictureBox>();
+        List<ProgressBar> enemyHealthBars = new List<ProgressBar>();
+        List<int> enemyMaxVida = new List<int>();
         Random rnd = new Random();
         int ronda = 1;
         bool bossPresent = false;
         int vidaMaxJugador = 0;
 
+        int selectedEnemyIndex = -1;
+
+        enum Turn { Player, Enemy }
+        Turn turno = Turn.Player;
 
         public Form1()
         {
@@ -50,15 +58,15 @@ namespace JuegoPOO
             {
                 case "Mago":
                     jugador = new Mago();
-                    pbJugador.Image = Image.FromFile("mago.png");
+                    pbJugador.Image = TryLoadImage("mago.png");
                     break;
                 case "Arquero":
                     jugador = new Arquero();
-                    pbJugador.Image = Image.FromFile("arquero.png");
+                    pbJugador.Image = TryLoadImage("arquero.png");
                     break;
                 case "Guerrero":
                     jugador = new Guerrero();
-                    pbJugador.Image = Image.FromFile("guerrero.png");
+                    pbJugador.Image = TryLoadImage("guerrero.png");
                     break;
                 default:
                     MessageBox.Show("Selecciona un personaje");
@@ -76,7 +84,28 @@ namespace JuegoPOO
             // iniciar la primera ronda
             ronda = 1;
             bossPresent = false;
+            turno = Turn.Player;
             IniciarRonda();
+        }
+
+        private Image TryLoadImage(string fileName)
+        {
+            try
+            {
+                var path1 = Path.Combine(Application.StartupPath, fileName);
+                if (File.Exists(path1))
+                    return Image.FromFile(path1);
+
+                var path2 = Path.Combine(Directory.GetCurrentDirectory(), fileName);
+                if (File.Exists(path2))
+                    return Image.FromFile(path2);
+
+                return null;
+            }
+            catch
+            {
+                return null;
+            }
         }
 
         private void IniciarRonda()
@@ -88,6 +117,14 @@ namespace JuegoPOO
                 pb.Dispose();
             }
             enemyBoxes.Clear();
+
+            foreach (var hb in enemyHealthBars)
+            {
+                hb.Dispose();
+            }
+            enemyHealthBars.Clear();
+            enemyMaxVida.Clear();
+
             panelEnemigos.Controls.Clear();
 
             txtLog.AppendText($"--- Ronda {ronda} ---{Environment.NewLine}");
@@ -99,16 +136,12 @@ namespace JuegoPOO
                 var boss = new Boss();
                 enemigos.Add(boss);
 
-                var pb = CrearPictureBoxEnemigo("boss.png");
-                panelEnemigos.Controls.Add(pb);
-                enemyBoxes.Add(pb);
-
-                // actualizar barra de vida con el boss
-                pbVidaEnemigo.Maximum = boss.Vida;
-                pbVidaEnemigo.Value = boss.Vida;
-                lblVidaEnemigo.Text = boss.Vida.ToString();
+                CrearControlesEnemigo(boss, "boss.png");
 
                 txtLog.AppendText("¡Ha aparecido el Boss!" + Environment.NewLine);
+
+                // seleccionar primer enemigo por defecto
+                SelectEnemy(0);
                 return;
             }
 
@@ -135,41 +168,91 @@ namespace JuegoPOO
                     imagen = "guerrero.png";
                 }
                 enemigos.Add(e);
-                var pb = CrearPictureBoxEnemigo(imagen);
-                panelEnemigos.Controls.Add(pb);
-                enemyBoxes.Add(pb);
+                CrearControlesEnemigo(e, imagen);
             }
 
-            // mostrar vida del primer enemigo vivo
-            var objetivo = enemigos.FirstOrDefault(x => x.Vida > 0);
-            if (objetivo != null)
-            {
-                pbVidaEnemigo.Maximum = objetivo.Vida;
-                pbVidaEnemigo.Value = objetivo.Vida;
-                lblVidaEnemigo.Text = objetivo.Vida.ToString();
-            }
+            // seleccionar primer enemigo vivo
+            var primero = enemigos.Select((x, idx) => new { x, idx }).FirstOrDefault(x => x.x.Vida > 0);
+            if (primero != null)
+                SelectEnemy(primero.idx);
         }
 
-        private PictureBox CrearPictureBoxEnemigo(string rutaImagen)
+        private void CrearControlesEnemigo(Personaje enemigo, string rutaImagen)
         {
+            // panel para contener imagen + barra
+            var container = new Panel();
+            container.Size = new Size(140, 170);
+            container.Margin = new Padding(6);
+            container.BackColor = SystemColors.Control;
+
             var pb = new PictureBox();
             pb.Size = new Size(120, 120);
             pb.SizeMode = PictureBoxSizeMode.Zoom;
-            pb.Margin = new Padding(10);
+            pb.Location = new Point(10, 6);
             pb.BorderStyle = BorderStyle.FixedSingle;
             try
             {
-                pb.Image = Image.FromFile(rutaImagen);
+                var img = TryLoadImage(rutaImagen);
+                if (img != null)
+                    pb.Image = img;
+                else
+                    pb.BackColor = Color.DarkRed;
             }
             catch
             {
-                // si falta la imagen, dejar vacío pero evitar excepción
                 pb.BackColor = Color.DarkRed;
             }
-            return pb;
+
+            int index = enemyBoxes.Count; // índice actual antes de añadir
+            pb.Cursor = Cursors.Hand;
+            pb.Click += (s, e) =>
+            {
+                SelectEnemy(index);
+            };
+
+            var hb = new ProgressBar();
+            hb.Size = new Size(120, 16);
+            hb.Location = new Point(10, 130);
+            hb.Minimum = 0;
+            hb.Maximum = Math.Max(1, enemigo.Vida);
+            hb.Value = Math.Max(0, Math.Min(hb.Maximum, enemigo.Vida));
+            var lbl = new Label();
+            lbl.AutoSize = false;
+            lbl.Size = new Size(120, 14);
+            lbl.Location = new Point(10, 148);
+            lbl.TextAlign = ContentAlignment.MiddleCenter;
+            lbl.Text = enemigo.Vida.ToString();
+
+            container.Controls.Add(pb);
+            container.Controls.Add(hb);
+            container.Controls.Add(lbl);
+
+            panelEnemigos.Controls.Add(container);
+
+            enemyBoxes.Add(pb);
+            enemyHealthBars.Add(hb);
+            enemyMaxVida.Add(hb.Maximum);
         }
 
-        private void Atacar_Click(object sender, EventArgs e)
+        private void SelectEnemy(int index)
+        {
+            if (index < 0 || index >= enemigos.Count) return;
+            selectedEnemyIndex = index;
+
+            // resaltar seleccionado visualmente
+            for (int i = 0; i < enemyBoxes.Count; i++)
+            {
+                enemyBoxes[i].BackColor = (i == index) ? Color.LightGreen : Color.Transparent;
+            }
+
+            // actualizar el panel de vida del enemigo principal si existe
+            var objetivo = enemigos[index];
+            pbVidaEnemigo.Maximum = Math.Max(1, enemyMaxVida[index]);
+            pbVidaEnemigo.Value = Math.Max(0, Math.Min(pbVidaEnemigo.Maximum, objetivo.Vida));
+            lblVidaEnemigo.Text = objetivo.Vida.ToString();
+        }
+
+        private async void Atacar_Click(object sender, EventArgs e)
         {
             if (jugador == null)
             {
@@ -177,88 +260,46 @@ namespace JuegoPOO
                 return;
             }
 
-            // objetivo: primer enemigo vivo
-            var objetivoIndex = enemigos.FindIndex(x => x.Vida > 0);
-            if (objetivoIndex == -1)
+            if (turno != Turn.Player)
             {
-                txtLog.AppendText("No hay enemigos. Inicia la siguiente ronda." + Environment.NewLine);
+                MessageBox.Show("No es tu turno.");
                 return;
             }
 
-            var objetivo = enemigos[objetivoIndex];
+            if (selectedEnemyIndex == -1 || selectedEnemyIndex >= enemigos.Count)
+            {
+                MessageBox.Show("Selecciona un enemigo a atacar.");
+                return;
+            }
+
+            var objetivo = enemigos[selectedEnemyIndex];
+            if (objetivo.Vida <= 0)
+            {
+                MessageBox.Show("Ese enemigo ya está derrotado. Selecciona otro.");
+                return;
+            }
 
             int daño = jugador.Atacar();
             objetivo.Vida -= daño;
-            txtLog.AppendText($"Jugador hizo {daño} de daño al enemigo {objetivoIndex + 1}\n");
+            txtLog.AppendText($"Jugador hizo {daño} de daño al enemigo {selectedEnemyIndex + 1}\n");
 
-            // actualizar imagen/estado del enemigo objetivo
             if (objetivo.Vida <= 0)
             {
                 objetivo.Vida = 0;
-                // marcar PictureBox como derrotado (oscurecer)
-                enemyBoxes[objetivoIndex].Enabled = false;
-                enemyBoxes[objetivoIndex].Image = null;
-                enemyBoxes[objetivoIndex].BackColor = Color.Gray;
-                txtLog.AppendText($"Enemigo {objetivoIndex + 1} derrotado.\n");
+                // actualizar visual del enemigo derrotado
+                enemyBoxes[selectedEnemyIndex].Enabled = false;
+                enemyBoxes[selectedEnemyIndex].Image = null;
+                enemyBoxes[selectedEnemyIndex].BackColor = Color.Gray;
+                txtLog.AppendText($"Enemigo {selectedEnemyIndex + 1} derrotado.\n");
             }
 
-            // enemigo contraataca: elegir un enemigo vivo al azar (si existe)
-            var vivos = enemigos
-                .Select((e, idx) => new { e, idx })
-                .Where(x => x.e.Vida > 0)
-                .ToList();
+            UpdateEnemyBar(selectedEnemyIndex);
 
-            if (vivos.Count > 0)
-            {
-                var atacante = vivos[rnd.Next(vivos.Count)].e;
-                int contra = rnd.Next(5, 15);
-                // si es boss, darle más daño
-                if (atacante is Boss)
-                    contra = rnd.Next(15, 30);
-
-                jugador.Vida -= contra;
-                txtLog.AppendText($"Enemigo hizo {contra} de daño\n");
-            }
-
-            // actualizar barras
-            pbVidaJugador.Maximum = Math.Max(1, vidaMaxJugador);
-            pbVidaJugador.Value = Math.Max(0, Math.Min(pbVidaJugador.Maximum, jugador.Vida));
-            lblVidaJugador.Text = jugador.Vida.ToString();
-
-            var primerVivo = enemigos.FirstOrDefault(x => x.Vida > 0);
-            if (primerVivo != null)
-            {
-                pbVidaEnemigo.Maximum = Math.Max(1, primerVivo.Vida); // evitar 0 máximo
-                pbVidaEnemigo.Value = Math.Max(0, Math.Min(pbVidaEnemigo.Maximum, primerVivo.Vida));
-                lblVidaEnemigo.Text = primerVivo.Vida.ToString();
-            }
-            else
-            {
-                // todos muertos: ganar la ronda
-                txtLog.AppendText("¡Ronda completada!" + Environment.NewLine);
-                ronda++;
-                if (jugador.Vida > 0)
-                {
-                    MessageBox.Show($"Has completado la ronda. Avanzando a la ronda {ronda}");
-                    IniciarRonda();
-                }
-                else
-                {
-                    MessageBox.Show("Te han derrotado. Fin del juego.");
-                }
-            }
-
-            // comprobar vida jugador
-            if (jugador.Vida <= 0)
-            {
-                jugador.Vida = 0;
-                pbVidaJugador.Value = 0;
-                lblVidaJugador.Text = "0";
-                MessageBox.Show("Perdiste!");
-            }
+            // finalizar turno del jugador y procesar enemigos
+            await EndPlayerTurnAsync();
         }
 
-        private void button3_Click(object sender, EventArgs e)
+        private async void button3_Click(object sender, EventArgs e)
         {
             // ataque especial: doble ataque al objetivo actual
             if (jugador == null)
@@ -267,84 +308,54 @@ namespace JuegoPOO
                 return;
             }
 
-            var objetivoIndex = enemigos.FindIndex(x => x.Vida > 0);
-            if (objetivoIndex == -1)
+            if (turno != Turn.Player)
             {
-                txtLog.AppendText("No hay enemigos para atacar." + Environment.NewLine);
+                MessageBox.Show("No es tu turno.");
+                return;
+            }
+
+            if (selectedEnemyIndex == -1 || selectedEnemyIndex >= enemigos.Count)
+            {
+                MessageBox.Show("Selecciona un enemigo para el ataque especial.");
+                return;
+            }
+
+            var objetivo = enemigos[selectedEnemyIndex];
+            if (objetivo.Vida <= 0)
+            {
+                MessageBox.Show("Ese enemigo ya está derrotado. Selecciona otro.");
                 return;
             }
 
             int daño = jugador.Ataque * 2;
-            var objetivo = enemigos[objetivoIndex];
             objetivo.Vida -= daño;
-            txtLog.AppendText($"Ataque especial hizo {daño} de daño al enemigo {objetivoIndex + 1}\n");
+            txtLog.AppendText($"Ataque especial hizo {daño} de daño al enemigo {selectedEnemyIndex + 1}\n");
 
             if (objetivo.Vida <= 0)
             {
                 objetivo.Vida = 0;
-                enemyBoxes[objetivoIndex].Enabled = false;
-                enemyBoxes[objetivoIndex].Image = null;
-                enemyBoxes[objetivoIndex].BackColor = Color.Gray;
-                txtLog.AppendText($"Enemigo {objetivoIndex + 1} derrotado.\n");
+                enemyBoxes[selectedEnemyIndex].Enabled = false;
+                enemyBoxes[selectedEnemyIndex].Image = null;
+                enemyBoxes[selectedEnemyIndex].BackColor = Color.Gray;
+                txtLog.AppendText($"Enemigo {selectedEnemyIndex + 1} derrotado.\n");
             }
 
-            // contraataque (como antes)
-            var vivos = enemigos
-                .Select((e, idx) => new { e, idx })
-                .Where(x => x.e.Vida > 0)
-                .ToList();
+            UpdateEnemyBar(selectedEnemyIndex);
 
-            if (vivos.Count > 0)
-            {
-                var atacante = vivos[rnd.Next(vivos.Count)].e;
-                int contra = rnd.Next(5, 15);
-                if (atacante is Boss)
-                    contra = rnd.Next(15, 30);
-
-                jugador.Vida -= contra;
-                txtLog.AppendText($"Enemigo hizo {contra} de daño\n");
-            }
-
-            pbVidaJugador.Maximum = Math.Max(1, vidaMaxJugador);
-            pbVidaJugador.Value = Math.Max(0, Math.Min(pbVidaJugador.Maximum, jugador.Vida));
-            lblVidaJugador.Text = jugador.Vida.ToString();
-
-            var primerVivo = enemigos.FirstOrDefault(x => x.Vida > 0);
-            if (primerVivo != null)
-            {
-                pbVidaEnemigo.Maximum = Math.Max(1, primerVivo.Vida);
-                pbVidaEnemigo.Value = Math.Max(0, Math.Min(pbVidaEnemigo.Maximum, primerVivo.Vida));
-                lblVidaEnemigo.Text = primerVivo.Vida.ToString();
-            }
-            else
-            {
-                txtLog.AppendText("¡Ronda completada!" + Environment.NewLine);
-                ronda++;
-                if (jugador.Vida > 0)
-                {
-                    MessageBox.Show($"Has completado la ronda. Avanzando a la ronda {ronda}");
-                    IniciarRonda();
-                }
-                else
-                {
-                    MessageBox.Show("Te han derrotado. Fin del juego.");
-                }
-            }
-
-            if (jugador.Vida <= 0)
-            {
-                jugador.Vida = 0;
-                pbVidaJugador.Value = 0;
-                lblVidaJugador.Text = "0";
-                MessageBox.Show("Perdiste!");
-            }
+            await EndPlayerTurnAsync();
         }
 
-        private void btnCurar_Click(object sender, EventArgs e)
+        private async void btnCurar_Click(object sender, EventArgs e)
         {
             if (jugador == null)
             {
                 MessageBox.Show("Crea un personaje primero.");
+                return;
+            }
+
+            if (turno != Turn.Player)
+            {
+                MessageBox.Show("No es tu turno.");
                 return;
             }
 
@@ -359,24 +370,117 @@ namespace JuegoPOO
             pbVidaJugador.Value = Math.Max(0, Math.Min(pbVidaJugador.Maximum, jugador.Vida));
             lblVidaJugador.Text = jugador.Vida.ToString();
 
-            int contra = rnd.Next(5, 15);
-            if (enemigos.Any(x => x.Vida > 0))
+            await EndPlayerTurnAsync();
+        }
+
+        private void UpdateEnemyBar(int idx)
+        {
+            if (idx < 0 || idx >= enemyHealthBars.Count) return;
+            var objetivo = enemigos[idx];
+            var hb = enemyHealthBars[idx];
+            hb.Maximum = Math.Max(1, enemyMaxVida[idx]);
+            hb.Value = Math.Max(0, Math.Min(hb.Maximum, objetivo.Vida));
+
+            // si está seleccionado, actualizar el pbVidaEnemigo principal también
+            if (selectedEnemyIndex == idx)
             {
-                var atacante = enemigos.Where(x => x.Vida > 0).OrderBy(x => rnd.Next()).First();
+                pbVidaEnemigo.Maximum = hb.Maximum;
+                pbVidaEnemigo.Value = hb.Value;
+                lblVidaEnemigo.Text = objetivo.Vida.ToString();
+            }
+        }
+
+        private async Task EndPlayerTurnAsync()
+        {
+            // comprobar si todos los enemigos están muertos
+            if (!enemigos.Any(x => x.Vida > 0))
+            {
+                txtLog.AppendText("¡Ronda completada!" + Environment.NewLine);
+                ronda++;
+                if (jugador.Vida > 0)
+                {
+                    MessageBox.Show($"Has completado la ronda. Avanzando a la ronda {ronda}");
+                    turno = Turn.Player;
+                    IniciarRonda();
+                }
+                else
+                {
+                    MessageBox.Show("Te han derrotado. Fin del juego.");
+                }
+                return;
+            }
+
+            // pasar turno a enemigos
+            turno = Turn.Enemy;
+
+            await ProcesarTurnoEnemigosAsync();
+
+            // después del turno enemigo, comprobar vida jugador y continuar
+            if (jugador.Vida <= 0)
+            {
+                jugador.Vida = 0;
+                pbVidaJugador.Value = 0;
+                lblVidaJugador.Text = "0";
+                MessageBox.Show("Perdiste!");
+                return;
+            }
+
+            // si todavía hay enemigos, volver al turno del jugador
+            turno = Turn.Player;
+
+            // si el objetivo seleccionado murió, seleccionar el siguiente vivo
+            if (selectedEnemyIndex == -1 || selectedEnemyIndex >= enemigos.Count || enemigos[selectedEnemyIndex].Vida <= 0)
+            {
+                var primerVivoIdx = enemigos.Select((e, idx) => new { e, idx }).FirstOrDefault(x => x.e.Vida > 0)?.idx ?? -1;
+                if (primerVivoIdx != -1)
+                    SelectEnemy(primerVivoIdx);
+                else
+                {
+                    // todos muertos -> iniciar siguiente ronda
+                    txtLog.AppendText("¡Ronda completada!" + Environment.NewLine);
+                    ronda++;
+                    if (jugador.Vida > 0)
+                    {
+                        MessageBox.Show($"Has completado la ronda. Avanzando a la ronda {ronda}");
+                        IniciarRonda();
+                    }
+                }
+            }
+        }
+
+        private async Task ProcesarTurnoEnemigosAsync()
+        {
+            // cada enemigo vivo ataca una vez con pequeña pausa entre ataques
+            var vivos = enemigos
+                .Select((e, idx) => new { e, idx })
+                .Where(x => x.e.Vida > 0)
+                .ToList();
+
+            foreach (var atacanteInfo in vivos)
+            {
+                var atacante = atacanteInfo.e;
+                int contra = rnd.Next(5, 15);
                 if (atacante is Boss)
                     contra = rnd.Next(15, 30);
+
                 jugador.Vida -= contra;
-                txtLog.AppendText($"Enemigo hizo {contra} de daño mientras te curabas\n");
+                if (jugador.Vida < 0) jugador.Vida = 0;
+                txtLog.AppendText($"Enemigo {atacanteInfo.idx + 1} hizo {contra} de daño\n");
+
                 pbVidaJugador.Maximum = Math.Max(1, vidaMaxJugador);
                 pbVidaJugador.Value = Math.Max(0, Math.Min(pbVidaJugador.Maximum, jugador.Vida));
                 lblVidaJugador.Text = jugador.Vida.ToString();
+
                 if (jugador.Vida <= 0)
                 {
                     jugador.Vida = 0;
                     pbVidaJugador.Value = 0;
                     lblVidaJugador.Text = "0";
                     MessageBox.Show("Perdiste!");
+                    break;
                 }
+
+                await Task.Delay(350); // pequeña pausa para sensación de turno
             }
         }
 
