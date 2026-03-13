@@ -70,7 +70,7 @@
             // lblJugador
             // 
             lblJugador.AutoSize = true;
-            lblJugador.Location = new Point(148, 333);
+            lblJugador.Location = new Point(377, 33);
             lblJugador.Margin = new Padding(2, 0, 2, 0);
             lblJugador.Name = "lblJugador";
             lblJugador.Size = new Size(79, 20);
@@ -80,7 +80,7 @@
             // lblVidaJugador
             // 
             lblVidaJugador.AutoSize = true;
-            lblVidaJugador.Location = new Point(140, 353);
+            lblVidaJugador.Location = new Point(377, 58);
             lblVidaJugador.Margin = new Padding(2, 0, 2, 0);
             lblVidaJugador.Name = "lblVidaJugador";
             lblVidaJugador.Size = new Size(96, 20);
@@ -90,7 +90,7 @@
             // lblVidaEnemigo
             // 
             lblVidaEnemigo.AutoSize = true;
-            lblVidaEnemigo.Location = new Point(140, 444);
+            lblVidaEnemigo.Location = new Point(948, 58);
             lblVidaEnemigo.Margin = new Padding(2, 0, 2, 0);
             lblVidaEnemigo.Name = "lblVidaEnemigo";
             lblVidaEnemigo.Size = new Size(102, 20);
@@ -133,7 +133,7 @@
             // pbVidaJugador
             // 
             pbVidaJugador.BackColor = Color.SeaGreen;
-            pbVidaJugador.Location = new Point(78, 375);
+            pbVidaJugador.Location = new Point(377, 55);
             pbVidaJugador.Margin = new Padding(2);
             pbVidaJugador.Name = "pbVidaJugador";
             pbVidaJugador.Size = new Size(217, 27);
@@ -143,7 +143,7 @@
             // pbVidaEnemigo
             // 
             pbVidaEnemigo.BackColor = Color.SeaGreen;
-            pbVidaEnemigo.Location = new Point(78, 466);
+            pbVidaEnemigo.Location = new Point(833, 55);
             pbVidaEnemigo.Margin = new Padding(2);
             pbVidaEnemigo.Name = "pbVidaEnemigo";
             pbVidaEnemigo.Size = new Size(217, 27);
@@ -152,19 +152,20 @@
             // 
             // txtLog
             // 
-            txtLog.Location = new Point(78, 549);
+            txtLog.Location = new Point(62, 333);
             txtLog.Margin = new Padding(2);
+            txtLog.Multiline = true;
             txtLog.Name = "txtLog";
-            txtLog.Size = new Size(218, 27);
+            txtLog.Size = new Size(218, 223);
             txtLog.TabIndex = 10;
             // 
             // pbJugador
             // 
             pbJugador.BorderStyle = BorderStyle.FixedSingle;
-            pbJugador.Location = new Point(366, 226);
+            pbJugador.Location = new Point(377, 93);
             pbJugador.Margin = new Padding(2);
             pbJugador.Name = "pbJugador";
-            pbJugador.Size = new Size(176, 176);
+            pbJugador.Size = new Size(325, 400);
             pbJugador.SizeMode = PictureBoxSizeMode.Zoom;
             pbJugador.TabIndex = 11;
             pbJugador.TabStop = false;
@@ -189,8 +190,6 @@
             Controls.Add(panelEnemigos);
             Controls.Add(pbJugador);
             Controls.Add(txtLog);
-            Controls.Add(pbVidaEnemigo);
-            Controls.Add(pbVidaJugador);
             Controls.Add(btnEspecial);
             Controls.Add(btnCurar);
             Controls.Add(btnAtacar);
@@ -199,6 +198,8 @@
             Controls.Add(lblJugador);
             Controls.Add(btnCrear);
             Controls.Add(cmbPersonaje);
+            Controls.Add(pbVidaJugador);
+            Controls.Add(pbVidaEnemigo);
             Margin = new Padding(2);
             Name = "Form1";
             Text = "Form1";
