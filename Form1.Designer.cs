@@ -34,28 +34,34 @@
             lblVidaJugador = new Label();
             lblVidaEnemigo = new Label();
             btnAtacar = new Button();
+            btnCurar = new Button();
             btnEspecial = new Button();
             pbVidaJugador = new ProgressBar();
             pbVidaEnemigo = new ProgressBar();
             txtLog = new TextBox();
+            pbJugador = new PictureBox();
+            panelEnemigos = new FlowLayoutPanel();
+            ((System.ComponentModel.ISupportInitialize)pbJugador).BeginInit();
             SuspendLayout();
             // 
             // cmbPersonaje
             // 
             cmbPersonaje.FormattingEnabled = true;
             cmbPersonaje.Items.AddRange(new object[] { "Mago", "Guerrero", "Arquero" });
-            cmbPersonaje.Location = new Point(133, 69);
+            cmbPersonaje.Location = new Point(106, 55);
+            cmbPersonaje.Margin = new Padding(2);
             cmbPersonaje.Name = "cmbPersonaje";
-            cmbPersonaje.Size = new Size(182, 33);
+            cmbPersonaje.Size = new Size(146, 28);
             cmbPersonaje.TabIndex = 0;
             cmbPersonaje.Text = "Elegir Personaje";
             cmbPersonaje.SelectedIndexChanged += comboBox1_SelectedIndexChanged;
             // 
             // btnCrear
             // 
-            btnCrear.Location = new Point(163, 218);
+            btnCrear.Location = new Point(130, 174);
+            btnCrear.Margin = new Padding(2);
             btnCrear.Name = "btnCrear";
-            btnCrear.Size = new Size(112, 34);
+            btnCrear.Size = new Size(90, 27);
             btnCrear.TabIndex = 1;
             btnCrear.Text = "Crear";
             btnCrear.UseVisualStyleBackColor = true;
@@ -64,49 +70,62 @@
             // lblJugador
             // 
             lblJugador.AutoSize = true;
-            lblJugador.Location = new Point(185, 416);
+            lblJugador.Location = new Point(148, 333);
+            lblJugador.Margin = new Padding(2, 0, 2, 0);
             lblJugador.Name = "lblJugador";
-            lblJugador.Size = new Size(96, 25);
+            lblJugador.Size = new Size(79, 20);
             lblJugador.TabIndex = 2;
             lblJugador.Text = "Personaje: ";
-            lblJugador.Click += label1_Click;
             // 
             // lblVidaJugador
             // 
             lblVidaJugador.AutoSize = true;
-            lblVidaJugador.Location = new Point(175, 441);
+            lblVidaJugador.Location = new Point(140, 353);
+            lblVidaJugador.Margin = new Padding(2, 0, 2, 0);
             lblVidaJugador.Name = "lblVidaJugador";
-            lblVidaJugador.Size = new Size(116, 25);
+            lblVidaJugador.Size = new Size(96, 20);
             lblVidaJugador.TabIndex = 3;
             lblVidaJugador.Text = "Vida Jugador";
-            lblVidaJugador.Click += label2_Click;
             // 
             // lblVidaEnemigo
             // 
             lblVidaEnemigo.AutoSize = true;
-            lblVidaEnemigo.Location = new Point(175, 555);
+            lblVidaEnemigo.Location = new Point(140, 444);
+            lblVidaEnemigo.Margin = new Padding(2, 0, 2, 0);
             lblVidaEnemigo.Name = "lblVidaEnemigo";
-            lblVidaEnemigo.Size = new Size(122, 25);
+            lblVidaEnemigo.Size = new Size(102, 20);
             lblVidaEnemigo.TabIndex = 4;
             lblVidaEnemigo.Text = "Vida Enemigo";
-            lblVidaEnemigo.Click += lblVidaEnemigo_Click;
             // 
             // btnAtacar
             // 
-            btnAtacar.Location = new Point(55, 336);
+            btnAtacar.Location = new Point(44, 269);
+            btnAtacar.Margin = new Padding(2);
             btnAtacar.Name = "btnAtacar";
-            btnAtacar.Size = new Size(112, 34);
+            btnAtacar.Size = new Size(90, 27);
             btnAtacar.TabIndex = 5;
             btnAtacar.Text = "Atacar";
             btnAtacar.UseVisualStyleBackColor = true;
             btnAtacar.Click += Atacar_Click;
             // 
+            // btnCurar
+            // 
+            btnCurar.Location = new Point(137, 269);
+            btnCurar.Margin = new Padding(2);
+            btnCurar.Name = "btnCurar";
+            btnCurar.Size = new Size(90, 27);
+            btnCurar.TabIndex = 6;
+            btnCurar.Text = "Curar";
+            btnCurar.UseVisualStyleBackColor = true;
+            btnCurar.Click += btnCurar_Click;
+            // 
             // btnEspecial
             // 
-            btnEspecial.Location = new Point(280, 336);
+            btnEspecial.Location = new Point(231, 269);
+            btnEspecial.Margin = new Padding(2);
             btnEspecial.Name = "btnEspecial";
-            btnEspecial.Size = new Size(112, 34);
-            btnEspecial.TabIndex = 6;
+            btnEspecial.Size = new Size(90, 27);
+            btnEspecial.TabIndex = 7;
             btnEspecial.Text = "Especial";
             btnEspecial.UseVisualStyleBackColor = true;
             btnEspecial.Click += button3_Click;
@@ -114,54 +133,78 @@
             // pbVidaJugador
             // 
             pbVidaJugador.BackColor = Color.SeaGreen;
-            pbVidaJugador.Location = new Point(97, 469);
+            pbVidaJugador.Location = new Point(78, 375);
+            pbVidaJugador.Margin = new Padding(2);
             pbVidaJugador.Name = "pbVidaJugador";
-            pbVidaJugador.Size = new Size(271, 34);
-            pbVidaJugador.TabIndex = 7;
+            pbVidaJugador.Size = new Size(217, 27);
+            pbVidaJugador.TabIndex = 8;
             pbVidaJugador.Click += progressBar1_Click;
             // 
             // pbVidaEnemigo
             // 
             pbVidaEnemigo.BackColor = Color.SeaGreen;
-            pbVidaEnemigo.Location = new Point(97, 583);
+            pbVidaEnemigo.Location = new Point(78, 466);
+            pbVidaEnemigo.Margin = new Padding(2);
             pbVidaEnemigo.Name = "pbVidaEnemigo";
-            pbVidaEnemigo.Size = new Size(271, 34);
-            pbVidaEnemigo.TabIndex = 8;
+            pbVidaEnemigo.Size = new Size(217, 27);
+            pbVidaEnemigo.TabIndex = 9;
             pbVidaEnemigo.Click += progressBar2_Click;
             // 
             // txtLog
             // 
-            txtLog.Location = new Point(97, 686);
+            txtLog.Location = new Point(78, 549);
+            txtLog.Margin = new Padding(2);
             txtLog.Name = "txtLog";
-            txtLog.Size = new Size(271, 31);
-            txtLog.TabIndex = 9;
-            txtLog.TextChanged += txtLog_TextChanged;
+            txtLog.Size = new Size(218, 27);
+            txtLog.TabIndex = 10;
+            // 
+            // pbJugador
+            // 
+            pbJugador.BorderStyle = BorderStyle.FixedSingle;
+            pbJugador.Location = new Point(366, 226);
+            pbJugador.Margin = new Padding(2);
+            pbJugador.Name = "pbJugador";
+            pbJugador.Size = new Size(176, 176);
+            pbJugador.SizeMode = PictureBoxSizeMode.Zoom;
+            pbJugador.TabIndex = 11;
+            pbJugador.TabStop = false;
+            pbJugador.Visible = false;
+            // 
+            // panelEnemigos
+            // 
+            panelEnemigos.AutoScroll = true;
+            panelEnemigos.FlowDirection = FlowDirection.TopDown;
+            panelEnemigos.Location = new Point(770, 93);
+            panelEnemigos.Margin = new Padding(2);
+            panelEnemigos.Name = "panelEnemigos";
+            panelEnemigos.Size = new Size(280, 400);
+            panelEnemigos.TabIndex = 12;
+            panelEnemigos.WrapContents = false;
             // 
             // Form1
             // 
-            AutoScaleDimensions = new SizeF(10F, 25F);
+            AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1558, 787);
+            ClientSize = new Size(1246, 630);
+            Controls.Add(panelEnemigos);
+            Controls.Add(pbJugador);
             Controls.Add(txtLog);
             Controls.Add(pbVidaEnemigo);
             Controls.Add(pbVidaJugador);
             Controls.Add(btnEspecial);
+            Controls.Add(btnCurar);
             Controls.Add(btnAtacar);
             Controls.Add(lblVidaEnemigo);
             Controls.Add(lblVidaJugador);
             Controls.Add(lblJugador);
             Controls.Add(btnCrear);
             Controls.Add(cmbPersonaje);
+            Margin = new Padding(2);
             Name = "Form1";
             Text = "Form1";
-            Load += Form1_Load;
+            ((System.ComponentModel.ISupportInitialize)pbJugador).EndInit();
             ResumeLayout(false);
             PerformLayout();
-        }
-
-        private void label2_Click(object sender, EventArgs e)
-        {
-            throw new NotImplementedException();
         }
 
         #endregion
@@ -172,9 +215,12 @@
         private Label lblVidaJugador;
         private Label lblVidaEnemigo;
         private Button btnAtacar;
+        private Button btnCurar;
         private Button btnEspecial;
         private ProgressBar pbVidaJugador;
         private ProgressBar pbVidaEnemigo;
         private TextBox txtLog;
+        private PictureBox pbJugador;
+        private FlowLayoutPanel panelEnemigos;
     }
 }
