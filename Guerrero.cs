@@ -9,12 +9,12 @@ namespace JuegoPOO
     public class Guerrero : Personaje
     {
        
-        public Guerrero() : base("Guerrero", 120, 15)
+        public Guerrero() : base("Guerrero", 120, 20)
         {
         }
         public override int Atacar()
         {
-            return Ataque + 5;
+            return Ataque + 10;
         }
 
     }

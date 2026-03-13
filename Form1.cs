@@ -155,17 +155,18 @@ namespace JuegoPOO
                 if (tipo == 1)
                 {
                     e = new Mago();
-                    imagen = "mago.png";
+                    imagen = "enemigo1.png";
                 }
                 else if (tipo == 2)
                 {
                     e = new Arquero();
-                    imagen = "arquero.png";
+                    imagen = "enemigo1.png";
+                    imagen = "enemigo2.png";
                 }
                 else
                 {
                     e = new Guerrero();
-                    imagen = "guerrero.png";
+                    imagen = "enemigo2.png";
                 }
                 enemigos.Add(e);
                 CrearControlesEnemigo(e, imagen);
@@ -281,7 +282,7 @@ namespace JuegoPOO
 
             int daño = jugador.Atacar();
             objetivo.Vida -= daño;
-            txtLog.AppendText($"Jugador hizo {daño} de daño al enemigo {selectedEnemyIndex + 1}\n");
+            txtLog.AppendText($"Jugador hizo {daño} de daño al enemigo {selectedEnemyIndex + 1}{Environment.NewLine}");
 
             if (objetivo.Vida <= 0)
             {
@@ -290,7 +291,7 @@ namespace JuegoPOO
                 enemyBoxes[selectedEnemyIndex].Enabled = false;
                 enemyBoxes[selectedEnemyIndex].Image = null;
                 enemyBoxes[selectedEnemyIndex].BackColor = Color.Gray;
-                txtLog.AppendText($"Enemigo {selectedEnemyIndex + 1} derrotado.\n");
+                txtLog.AppendText($"Enemigo {selectedEnemyIndex + 1} derrotado.{Environment.NewLine}");
             }
 
             UpdateEnemyBar(selectedEnemyIndex);
@@ -329,7 +330,7 @@ namespace JuegoPOO
 
             int daño = jugador.Ataque * 2;
             objetivo.Vida -= daño;
-            txtLog.AppendText($"Ataque especial hizo {daño} de daño al enemigo {selectedEnemyIndex + 1}\n");
+            txtLog.AppendText($"Ataque especial hizo {daño} de daño al enemigo {selectedEnemyIndex + 1}{Environment.NewLine}");
 
             if (objetivo.Vida <= 0)
             {
@@ -337,7 +338,7 @@ namespace JuegoPOO
                 enemyBoxes[selectedEnemyIndex].Enabled = false;
                 enemyBoxes[selectedEnemyIndex].Image = null;
                 enemyBoxes[selectedEnemyIndex].BackColor = Color.Gray;
-                txtLog.AppendText($"Enemigo {selectedEnemyIndex + 1} derrotado.\n");
+                txtLog.AppendText($"Enemigo {selectedEnemyIndex + 1} derrotado.{Environment.NewLine}");
             }
 
             UpdateEnemyBar(selectedEnemyIndex);
@@ -395,9 +396,17 @@ namespace JuegoPOO
             // comprobar si todos los enemigos están muertos
             if (!enemigos.Any(x => x.Vida > 0))
             {
+                // si era boss, reiniciar el juego al vencerlo
+                if (bossPresent)
+                {
+                    txtLog.AppendText("¡Has derrotado al Boss! El juego se reiniciará." + Environment.NewLine);
+                    SafeRestart("¡Has derrotado al Boss! El juego se reiniciará. Selecciona otro personaje.");
+                    return;
+                }
+
                 txtLog.AppendText("¡Ronda completada!" + Environment.NewLine);
                 ronda++;
-                if (jugador.Vida > 0)
+                if (jugador != null && jugador.Vida > 0)
                 {
                     MessageBox.Show($"Has completado la ronda. Avanzando a la ronda {ronda}");
                     turno = Turn.Player;
@@ -405,7 +414,7 @@ namespace JuegoPOO
                 }
                 else
                 {
-                    MessageBox.Show("Te han derrotado. Fin del juego.");
+                    SafeRestart("Perdiste! El juego se reiniciará. Selecciona otro personaje.");
                 }
                 return;
             }
@@ -416,12 +425,9 @@ namespace JuegoPOO
             await ProcesarTurnoEnemigosAsync();
 
             // después del turno enemigo, comprobar vida jugador y continuar
-            if (jugador.Vida <= 0)
+            if (jugador == null || jugador.Vida <= 0)
             {
-                jugador.Vida = 0;
-                pbVidaJugador.Value = 0;
-                lblVidaJugador.Text = "0";
-                MessageBox.Show("Perdiste!");
+                SafeRestart("Perdiste! El juego se reiniciará. Selecciona otro personaje.");
                 return;
             }
 
@@ -439,10 +445,14 @@ namespace JuegoPOO
                     // todos muertos -> iniciar siguiente ronda
                     txtLog.AppendText("¡Ronda completada!" + Environment.NewLine);
                     ronda++;
-                    if (jugador.Vida > 0)
+                    if (jugador != null && jugador.Vida > 0)
                     {
                         MessageBox.Show($"Has completado la ronda. Avanzando a la ronda {ronda}");
                         IniciarRonda();
+                    }
+                    else
+                    {
+                        SafeRestart("Perdiste! El juego se reiniciará. Selecciona otro personaje.");
                     }
                 }
             }
@@ -459,13 +469,13 @@ namespace JuegoPOO
             foreach (var atacanteInfo in vivos)
             {
                 var atacante = atacanteInfo.e;
-                int contra = rnd.Next(5, 15);
+                int contra = rnd.Next(5, 10);
                 if (atacante is Boss)
-                    contra = rnd.Next(15, 30);
+                    contra = rnd.Next(5, 15);
 
                 jugador.Vida -= contra;
                 if (jugador.Vida < 0) jugador.Vida = 0;
-                txtLog.AppendText($"Enemigo {atacanteInfo.idx + 1} hizo {contra} de daño\n");
+                txtLog.AppendText($"Enemigo {atacanteInfo.idx + 1} hizo {contra} de daño{Environment.NewLine}");
 
                 pbVidaJugador.Maximum = Math.Max(1, vidaMaxJugador);
                 pbVidaJugador.Value = Math.Max(0, Math.Min(pbVidaJugador.Maximum, jugador.Vida));
@@ -476,7 +486,8 @@ namespace JuegoPOO
                     jugador.Vida = 0;
                     pbVidaJugador.Value = 0;
                     lblVidaJugador.Text = "0";
-                    MessageBox.Show("Perdiste!");
+                    // reiniciar juego tras derrota del jugador de forma segura
+                    SafeRestart("Perdiste! El juego se reiniciará. Selecciona otro personaje.");
                     break;
                 }
 
@@ -501,6 +512,94 @@ namespace JuegoPOO
 
             if (jugador != null && jugador.Vida < 0)
                 jugador.Vida = 0;
+        }
+
+        // ------------------ Nuevos métodos para reiniciar ------------------
+
+        private void SafeRestart(string message)
+        {
+            if (this.IsHandleCreated && !this.IsDisposed)
+            {
+                Action restartAction = () =>
+                {
+                    try
+                    {
+                        MessageBox.Show(message);
+                    }
+                    catch { /* ignorar */ }
+                    ReiniciarJuego();
+                };
+
+                if (this.InvokeRequired)
+                    this.BeginInvoke(restartAction);
+                else
+                    restartAction();
+            }
+        }
+
+        private void ManejarDerrotaJugador()
+        {
+            SafeRestart("Perdiste! El juego se reiniciará. Selecciona otro personaje.");
+        }
+
+        private void ReiniciarJuego()
+        {
+            // limpiar estado de enemigos
+            enemigos.Clear();
+            foreach (var pb in enemyBoxes)
+            {
+                try { pb.Dispose(); } catch { }
+            }
+            enemyBoxes.Clear();
+
+            foreach (var hb in enemyHealthBars)
+            {
+                try { hb.Dispose(); } catch { }
+            }
+            enemyHealthBars.Clear();
+            enemyMaxVida.Clear();
+
+            try { panelEnemigos.Controls.Clear(); } catch { }
+
+            // reset visual jugador
+            jugador = null;
+            vidaMaxJugador = 0;
+            selectedEnemyIndex = -1;
+            turno = Turn.Player;
+            bossPresent = false;
+            ronda = 1;
+
+            try { pbJugador.Image = null; pbJugador.Visible = false; } catch { }
+
+            try
+            {
+                pbVidaJugador.Maximum = 1;
+                pbVidaJugador.Value = 0;
+                lblVidaJugador.Text = "0";
+            }
+            catch { }
+
+            try
+            {
+                pbVidaEnemigo.Maximum = 1;
+                pbVidaEnemigo.Value = 0;
+                lblVidaEnemigo.Text = "0";
+            }
+            catch { }
+
+            // permitir escoger personaje otra vez
+            try
+            {
+                cmbPersonaje.SelectedItem = null;
+                cmbPersonaje.Enabled = true;
+            }
+            catch { }
+
+            try
+            {
+                txtLog.AppendText("Juego reiniciado. Selecciona un personaje para comenzar de nuevo." + Environment.NewLine);
+            }
+            catch { }
         }
 
     }
