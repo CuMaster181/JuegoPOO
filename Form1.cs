@@ -505,7 +505,7 @@ namespace JuegoPOO
                 jugador.Vida = 0;
         }
 
-        private void progressBar1_Click(object sender, EventArgs e)
+        private void pbVidaJugador(object sender, EventArgs e)
         {
             foreach (var v in enemigos)
                 if (v.Vida < 0) v.Vida = 0;

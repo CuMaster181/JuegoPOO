@@ -138,7 +138,7 @@
             pbVidaJugador.Name = "pbVidaJugador";
             pbVidaJugador.Size = new Size(217, 27);
             pbVidaJugador.TabIndex = 8;
-            pbVidaJugador.Click += progressBar1_Click;
+            pbVidaJugador.Click += pbVidaJugador;
             // 
             // pbVidaEnemigo
             // 
