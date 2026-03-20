@@ -54,7 +54,7 @@
             cmbPersonaje.Size = new Size(146, 28);
             cmbPersonaje.TabIndex = 0;
             cmbPersonaje.Text = "Elegir Personaje";
-            cmbPersonaje.SelectedIndexChanged += comboBox1_SelectedIndexChanged;
+            cmbPersonaje.SelectedIndexChanged += cmbPersonaje_Selected;
             // 
             // btnCrear
             // 
@@ -65,7 +65,7 @@
             btnCrear.TabIndex = 1;
             btnCrear.Text = "Crear";
             btnCrear.UseVisualStyleBackColor = true;
-            btnCrear.Click += button1_Click;
+            btnCrear.Click += btnCrear_Click;
             // 
             // lblJugador
             // 
@@ -106,7 +106,7 @@
             btnAtacar.TabIndex = 5;
             btnAtacar.Text = "Atacar";
             btnAtacar.UseVisualStyleBackColor = true;
-            btnAtacar.Click += Atacar_Click;
+            btnAtacar.Click += btnAtacar_Click;
             // 
             // btnCurar
             // 
@@ -128,7 +128,7 @@
             btnEspecial.TabIndex = 7;
             btnEspecial.Text = "Especial";
             btnEspecial.UseVisualStyleBackColor = true;
-            btnEspecial.Click += button3_Click;
+            btnEspecial.Click += btnEspecial_Click;
             // 
             // pbVidaJugador
             // 
@@ -138,8 +138,6 @@
             pbVidaJugador.Name = "pbVidaJugador";
             pbVidaJugador.Size = new Size(217, 27);
             pbVidaJugador.TabIndex = 8;
-            pbVidaJugador.Click += pbVidaJugador;
-            // 
             // pbVidaEnemigo
             // 
             pbVidaEnemigo.BackColor = Color.SeaGreen;
@@ -148,7 +146,6 @@
             pbVidaEnemigo.Name = "pbVidaEnemigo";
             pbVidaEnemigo.Size = new Size(217, 27);
             pbVidaEnemigo.TabIndex = 9;
-            pbVidaEnemigo.Click += progressBar2_Click;
             // 
             // txtLog
             // 

@@ -31,7 +31,7 @@ namespace JuegoPOO
             InitializeComponent();
 
         }
-        private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
+        private void cmbPersonaje_Selected(object sender, EventArgs e)
         {
             // rellenar solo la primera vez si fuera necesario
             if (cmbPersonaje.Items.Count == 0)
@@ -44,7 +44,7 @@ namespace JuegoPOO
             txtLog.Multiline = true;
         }
 
-        private void button1_Click(object sender, EventArgs e)
+        private void btnCrear_Click(object sender, EventArgs e)
         {
             if (cmbPersonaje.SelectedItem == null)
             {
@@ -160,7 +160,6 @@ namespace JuegoPOO
                 else if (tipo == 2)
                 {
                     e = new Arquero();
-                    imagen = "enemigo1.png";
                     imagen = "enemigo2.png";
                 }
                 else
@@ -253,7 +252,7 @@ namespace JuegoPOO
             lblVidaEnemigo.Text = objetivo.Vida.ToString();
         }
 
-        private async void Atacar_Click(object sender, EventArgs e)
+        private async void btnAtacar_Click(object sender, EventArgs e)
         {
             if (jugador == null)
             {
@@ -300,7 +299,7 @@ namespace JuegoPOO
             await EndPlayerTurnAsync();
         }
 
-        private async void button3_Click(object sender, EventArgs e)
+        private async void btnEspecial_Click(object sender, EventArgs e)
         {
             // ataque especial: doble ataque al objetivo actual
             if (jugador == null)
@@ -495,7 +494,7 @@ namespace JuegoPOO
             }
         }
 
-        private void progressBar2_Click(object sender, EventArgs e)
+        private void pbVidaEnemigo_Click(object sender, EventArgs e)
         {
             // mantener valores no negativos
             foreach (var v in enemigos)
@@ -505,7 +504,7 @@ namespace JuegoPOO
                 jugador.Vida = 0;
         }
 
-        private void pbVidaJugador(object sender, EventArgs e)
+        private void pbVidaJugador_Click(object sender, EventArgs e)
         {
             foreach (var v in enemigos)
                 if (v.Vida < 0) v.Vida = 0;
@@ -601,6 +600,5 @@ namespace JuegoPOO
             }
             catch { }
         }
-
     }
 }
